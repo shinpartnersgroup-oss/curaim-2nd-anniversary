@@ -423,7 +423,7 @@ body.drawer-open .dr-foot { opacity: 1; }
 
 /* 04 count : dark → number flashes into reality */
 .js [data-fx="count"] picture { filter: brightness(.18) blur(6px); transform: scale(1.06); opacity: 1; }
-.js [data-fx="count"].lit picture { filter: none; transform: none; transition: filter 1.6s var(--ease-out), transform 2.4s var(--ease-out); }
+.js [data-fx="count"].lit picture { filter: none; transform: none; transition: filter .9s var(--ease-out), transform 1.8s var(--ease-out); }
 .counter {
   position: absolute; inset: 0; z-index: 6; display: grid; place-items: center; pointer-events: none;
   opacity: 0;
@@ -436,7 +436,7 @@ body.drawer-open .dr-foot { opacity: 1; }
   font-variant-numeric: lining-nums tabular-nums;
 }
 .sec.counting .counter { opacity: 1; transition: opacity .4s ease; }
-.sec.lit .counter { opacity: 0; transform: scale(1.5); filter: blur(12px); transition: opacity 1s ease, transform 1.2s var(--ease-out), filter 1s ease; }
+.sec.lit .counter { opacity: 0; transform: scale(1.5); filter: blur(12px); transition: opacity .7s ease, transform 1s var(--ease-out), filter .7s ease; }
 .burst {
   position: absolute; z-index: 3; left: var(--x); top: var(--y); width: 10px; height: 10px; margin: -5px 0 0 -5px;
   border-radius: 50%; pointer-events: none; mix-blend-mode: screen; opacity: 0;

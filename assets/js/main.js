@@ -297,9 +297,7 @@ const CONFIG = {
       const b = $('.counter b', sec);
       if (reduced) { sec.classList.add('lit'); return; }
       sec.classList.add('counting');
-      tween(1500, (k) => { b.textContent = Math.round(150 * easeOutExpo(k)); }, () => {
-        setTimeout(() => sec.classList.add('lit'), 180);
-      });
+      tween(1300, (k) => { b.textContent = Math.round(150 * easeOutExpo(k)); }, () => sec.classList.add('lit'));
     },
     spotlight(sec) {
       const veil = $('.spot-veil', sec);
@@ -346,14 +344,15 @@ const CONFIG = {
     });
   }, { rootMargin: '150% 0px' });
 
-  // dramatic sections wait until they reach the middle of the screen
-  const CENTER_FX = ['count', 'spotlight', 'door'];
+  // dramatic sections wait until they reach the middle of the screen,
+  // the rest start once their top passes the lower third of the screen
+  const CENTER_FX = ['count', 'spotlight', 'door', 'split', 'finale'];
   const onReveal = (io) => (entries) => {
     entries.forEach((e) => {
       if (e.isIntersecting) { reveal(e.target); io.unobserve(e.target); }
     });
   };
-  const revealIO = new IntersectionObserver((en) => onReveal(revealIO)(en), { threshold: 0.22 });
+  const revealIO = new IntersectionObserver((en) => onReveal(revealIO)(en), { rootMargin: '0px 0px -30% 0px' });
   const centerIO = new IntersectionObserver((en) => onReveal(centerIO)(en), { rootMargin: '-40% 0px -40% 0px' });
 
   const fxIO = new IntersectionObserver((entries) => {
@@ -417,6 +416,7 @@ const CONFIG = {
   let lastY = scrollY;
   let ticking = false;
 
+  let sideTimer;
   const setCurrent = (i) => {
     if (i === current) return;
     current = i;
@@ -424,9 +424,10 @@ const CONFIG = {
     drawerLinks.forEach((a, j) => a.classList.toggle('is-current', j === i));
     // side label swap
     sideL.classList.add('swap');
-    setTimeout(() => {
-      sideNum.textContent = pad(i + 1);
-      sideTitle.textContent = sections[i].dataset.en;
+    clearTimeout(sideTimer);
+    sideTimer = setTimeout(() => {
+      sideNum.textContent = pad(current + 1);
+      sideTitle.textContent = sections[current].dataset.en;
       sideL.classList.remove('swap');
     }, 300);
     // ambient cross-fade
@@ -450,11 +451,14 @@ const CONFIG = {
     }
     lastY = y;
 
+    // the last section whose top has passed the middle of the screen
     const mid = vh * .5;
+    let cur = 0;
     for (let i = 0; i < sections.length; i++) {
-      const r = sections[i].getBoundingClientRect();
-      if (r.top <= mid && r.bottom > mid) { setCurrent(i); break; }
+      if (sections[i].getBoundingClientRect().top <= mid) cur = i;
+      else break;
     }
+    setCurrent(cur);
 
     const fr = footer.getBoundingClientRect();
     const firstH = sections[0].offsetHeight;
