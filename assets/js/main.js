@@ -543,6 +543,27 @@ const CONFIG = {
     ambFront = back;
   };
 
+  // edge rails (mobile) spell out whichever section or gallery is on screen
+  const rails = $$('.rail');
+  const railMarks = $$('.sec, [data-gallery]');
+  let railCur = null;
+  let railTimer;
+  const setRail = (el) => {
+    if (el === railCur) return;
+    const first = !railCur;
+    railCur = el;
+    const unit = `${el.dataset.en}<i>✦</i>CURAIM 2nd ANNIVERSARY<i>✦</i>`;
+    const fill = () => rails.forEach((r) => {
+      $('.rail-text', r).innerHTML = unit.repeat(6);
+      r.classList.toggle('night', el.classList.contains('sec-night') || el.classList.contains('gal-party'));
+      r.classList.remove('swap');
+    });
+    clearTimeout(railTimer);
+    if (first) { fill(); return; }
+    rails.forEach((r) => r.classList.add('swap'));
+    railTimer = setTimeout(fill, 450);
+  };
+
   const onScroll = () => {
     ticking = false;
     const y = scrollY;
@@ -564,6 +585,12 @@ const CONFIG = {
       else break;
     }
     setCurrent(cur);
+    let mark = railMarks[0];
+    for (const el of railMarks) {
+      if (el.getBoundingClientRect().top <= mid) mark = el;
+      else break;
+    }
+    setRail(mark);
 
     const fr = footer.getBoundingClientRect();
     const firstH = sections[0].offsetHeight;

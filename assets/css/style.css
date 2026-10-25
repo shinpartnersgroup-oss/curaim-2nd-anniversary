@@ -725,43 +725,51 @@ body.drawer-open .dr-foot { opacity: 1; }
 .gallery.paused .gal-bar i.run { animation-play-state: paused; }
 @keyframes galBar { to { transform: scaleX(1); } }
 
-/* edge rails : vertical light + drifting type (mobile only) */
-.gal-rail { display: none; }
+/* =========================================================
+   EDGE RAILS (mobile) : vertical light + drifting type
+   ========================================================= */
+.rail { display: none; }
 @media (max-width: 999px) {
-  .gal-rail {
-    display: block; position: absolute; top: 0; bottom: 0; z-index: 4; width: 30px; overflow: hidden; pointer-events: none;
-    -webkit-mask: linear-gradient(180deg, transparent, #000 14%, #000 86%, transparent);
-            mask: linear-gradient(180deg, transparent, #000 14%, #000 86%, transparent);
+  .rail {
+    --tint: 142,197,255;
+    --tint-2: 185,164,255;
+    display: block; position: fixed; top: 0; bottom: 0; z-index: 60; width: 26px; overflow: hidden; pointer-events: none;
+    -webkit-mask: linear-gradient(180deg, transparent, #000 12%, #000 88%, transparent);
+            mask: linear-gradient(180deg, transparent, #000 12%, #000 88%, transparent);
   }
-  .gal-rail-l { left: 0; background: linear-gradient(90deg, rgba(5,7,26,.75), transparent); }
-  .gal-rail-r { right: 0; background: linear-gradient(270deg, rgba(5,7,26,.75), transparent); }
-  .gal-rail::before {
-    content: ""; position: absolute; top: 0; bottom: 0; width: 1px; left: 6px;
+  .rail-l { left: 0; background: linear-gradient(90deg, rgba(5,7,26,.5), transparent); }
+  .rail-r { right: 0; background: linear-gradient(270deg, rgba(5,7,26,.5), transparent); }
+  .rail::before {
+    content: ""; position: absolute; top: 0; bottom: 0; width: 1px; left: 5px;
     background: linear-gradient(180deg, transparent, rgba(246,243,238,.22) 20%, rgba(246,243,238,.22) 80%, transparent);
   }
-  .gal-rail-r::before { left: auto; right: 6px; }
-  .gal-beam {
-    position: absolute; left: 5px; top: 0; width: 3px; height: 140px; border-radius: 3px;
+  .rail-r::before { left: auto; right: 5px; }
+  .rail-beam {
+    position: absolute; left: 4px; top: 0; width: 3px; height: 140px; border-radius: 3px;
     background: linear-gradient(180deg, transparent, rgba(var(--tint),.9) 70%, #fff);
     box-shadow: 0 0 10px 1px rgba(var(--tint),.8), 0 0 24px 4px rgba(var(--tint-2),.35);
     animation: beamDown 4.8s cubic-bezier(.45, 0, .55, 1) infinite;
   }
-  .gal-beam + .gal-beam { animation-delay: -2.4s; height: 80px; opacity: .7; }
-  .gal-rail-l .gal-beam { animation-name: beamUp; background: linear-gradient(0deg, transparent, rgba(var(--tint-2),.9) 70%, #fff); }
-  .gal-rail-r .gal-beam { left: auto; right: 5px; }
+  .rail-beam + .rail-beam { animation-delay: -2.4s; height: 80px; opacity: .7; }
+  .rail-l .rail-beam { animation-name: beamUp; background: linear-gradient(0deg, transparent, rgba(var(--tint-2),.9) 70%, #fff); }
+  .rail-r .rail-beam { left: auto; right: 4px; }
   @keyframes beamDown { from { top: -160px; } to { top: 100%; } }
   @keyframes beamUp { from { top: 100%; } to { top: -160px; } }
-  .gal-vtext {
-    position: absolute; top: 0; left: 13px; margin: 0;
+  .rail-text {
+    position: absolute; top: 0; left: 11px; margin: 0;
     writing-mode: vertical-rl; white-space: nowrap;
-    font-family: var(--serif-en); font-size: 10px; letter-spacing: .5em; line-height: 1; color: rgba(246,243,238,.5);
+    font-family: var(--serif-en); font-size: 10px; letter-spacing: .5em; line-height: 1; color: rgba(246,243,238,.62);
+    text-shadow: 0 0 6px rgba(5,7,26,.6);
+    transition: opacity .5s ease, filter .5s ease;
     animation: vtextUp 40s linear infinite;
   }
-  .gal-vtext i { font-style: normal; margin: .8em 0; color: rgba(var(--tint),1); text-shadow: 0 0 8px rgba(var(--tint),.9); }
+  .rail.swap .rail-text { opacity: 0; filter: blur(4px); }
+  .rail-text i { font-style: normal; margin: .8em 0; color: rgba(var(--tint),1); text-shadow: 0 0 8px rgba(var(--tint),.9); }
   @keyframes vtextUp { to { transform: translateY(-50%); } }
   /* right rail reads bottom-to-top and drifts downward */
-  .gal-rail-r .gal-vtext { left: auto; right: 13px; top: auto; bottom: 0; animation-name: vtextDown; }
+  .rail-r .rail-text { left: auto; right: 11px; top: auto; bottom: 0; animation-name: vtextDown; }
   @keyframes vtextDown { from { transform: rotate(180deg); } to { transform: rotate(180deg) translateY(-50%); } }
+  .rail.night { --tint: 255,190,150; --tint-2: 255,168,207; }
 }
 
 /* =========================================================
