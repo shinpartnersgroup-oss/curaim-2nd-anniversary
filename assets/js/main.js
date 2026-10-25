@@ -147,7 +147,7 @@ const CONFIG = {
       this.resize();
     }
     resize() {
-      const dpr = Math.min(devicePixelRatio || 1, 2);
+      const dpr = Math.min(devicePixelRatio || 1, 1.5);
       this.w = this.c.clientWidth;
       this.h = this.c.clientHeight;
       this.c.width = this.w * dpr;
@@ -409,9 +409,18 @@ const CONFIG = {
       if (Math.abs(o) <= 2) return String(o);
       return o < 0 ? 'far-l' : 'far-r';
     };
+    // only the slides near the stage get their photo, to keep phone memory low
+    let armed = false;
+    const load = (s) => {
+      if (s.dataset.loaded) return;
+      s.dataset.loaded = '1';
+      $$('[data-srcset]', s).forEach((el) => { el.srcset = el.dataset.srcset; });
+      $$('[data-src]', s).forEach((el) => { el.src = el.dataset.src; });
+    };
     const layout = () => {
       slides.forEach((s, i) => {
         const next = posOf(i);
+        if (armed && !next.startsWith('far')) load(s);
         const prev = s.dataset.pos;
         // slides that wrap around behind the stage jump instead of flying across it
         const wraps = prev && ((prev === 'far-l' && next === 'far-r') || (prev === 'far-r' && next === 'far-l')
@@ -420,15 +429,11 @@ const CONFIG = {
         s.dataset.pos = next;
         s.setAttribute('aria-hidden', next !== '0');
       });
-      const img = $('img', slides[cur]);
-      const setBg = () => {
-        const back = bgs[1 - bgFront];
-        back.style.backgroundImage = `url("${img.currentSrc || img.src}")`;
-        back.classList.add('on');
-        bgs[bgFront].classList.remove('on');
-        bgFront = 1 - bgFront;
-      };
-      img.complete ? setBg() : img.addEventListener('load', setBg, { once: true });
+      const back = bgs[1 - bgFront];
+      back.style.backgroundImage = `url("${slides[cur].dataset.bg}")`;
+      back.classList.add('on');
+      bgs[bgFront].classList.remove('on');
+      bgFront = 1 - bgFront;
       num.classList.add('swap');
       setTimeout(() => { num.textContent = pad(cur + 1); num.classList.remove('swap'); }, 300);
     };
@@ -487,6 +492,14 @@ const CONFIG = {
       visible = e.isIntersecting;
       schedule();
     }, { threshold: 0.35 }).observe(gal);
+    // start fetching the first photos a little before the gallery arrives
+    const near = new IntersectionObserver(([e]) => {
+      if (!e.isIntersecting) return;
+      near.disconnect();
+      armed = true;
+      slides.forEach((s, i) => { if (!posOf(i).startsWith('far')) load(s); });
+    }, { rootMargin: '100% 0px' });
+    near.observe(gal);
 
     layout();
   });
