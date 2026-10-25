@@ -386,6 +386,111 @@ const CONFIG = {
   }, { threshold: 0.15 });
   $$('.reveal').forEach((el) => ftIO.observe(el));
 
+  /* =======================================================
+     PHOTO GALLERIES — auto-advancing, loops, swipeable
+     ======================================================= */
+  $$('[data-gallery]').forEach((gal) => {
+    const slides = $$('.gal-slide', gal);
+    const n = slides.length;
+    const dur = Number(gal.dataset.interval) || 4000;
+    const num = $('.gal-count b', gal);
+    const bar = $('.gal-bar i', gal);
+    const bgs = $$('.gal-bg i', gal);
+    let cur = 0;
+    let bgFront = 0;
+    let timer;
+    let visible = false;
+    let hovering = false;
+    gal.style.setProperty('--dur', `${dur}ms`);
+
+    const posOf = (i) => {
+      let o = (((i - cur) % n) + n) % n;
+      if (o > n / 2) o -= n;
+      if (Math.abs(o) <= 2) return String(o);
+      return o < 0 ? 'far-l' : 'far-r';
+    };
+    const layout = () => {
+      slides.forEach((s, i) => {
+        const next = posOf(i);
+        const prev = s.dataset.pos;
+        // slides that wrap around behind the stage jump instead of flying across it
+        const wraps = prev && ((prev === 'far-l' && next === 'far-r') || (prev === 'far-r' && next === 'far-l')
+          || (prev === '-2' && next === 'far-r') || (prev === '2' && next === 'far-l'));
+        s.classList.toggle('jump', !!wraps);
+        s.dataset.pos = next;
+        s.setAttribute('aria-hidden', next !== '0');
+      });
+      const img = $('img', slides[cur]);
+      const setBg = () => {
+        const back = bgs[1 - bgFront];
+        back.style.backgroundImage = `url("${img.currentSrc || img.src}")`;
+        back.classList.add('on');
+        bgs[bgFront].classList.remove('on');
+        bgFront = 1 - bgFront;
+      };
+      img.complete ? setBg() : img.addEventListener('load', setBg, { once: true });
+      num.classList.add('swap');
+      setTimeout(() => { num.textContent = pad(cur + 1); num.classList.remove('swap'); }, 300);
+    };
+    const restartBar = () => {
+      bar.classList.remove('run');
+      void bar.offsetWidth;
+      if (!reduced) bar.classList.add('run');
+    };
+    let playing = false;
+    const schedule = () => {
+      clearTimeout(timer);
+      const was = playing;
+      playing = visible && !hovering && !document.hidden && !reduced;
+      gal.classList.toggle('paused', !playing);
+      if (playing && !was) restartBar();
+      if (playing) timer = setTimeout(() => go(1), dur);
+    };
+    const go = (step) => {
+      cur = (cur + step + n) % n;
+      layout();
+      restartBar();
+      schedule();
+    };
+
+    $('.gal-prev', gal).addEventListener('click', () => go(-1));
+    $('.gal-next', gal).addEventListener('click', () => go(1));
+    slides.forEach((s, i) => s.addEventListener('click', () => {
+      const p = s.dataset.pos;
+      if (p === '1' || p === '-1') go(Number(p));
+      else if (i !== cur) go(i - cur);
+    }));
+
+    // swipe
+    const stage = $('.gal-stage', gal);
+    let x0 = null;
+    let y0 = 0;
+    let swiped = false;
+    stage.addEventListener('pointerdown', (e) => { x0 = e.clientX; y0 = e.clientY; swiped = false; });
+    stage.addEventListener('pointerup', (e) => {
+      if (x0 === null) return;
+      const dx = e.clientX - x0;
+      const dy = e.clientY - y0;
+      x0 = null;
+      if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) { swiped = true; go(dx < 0 ? 1 : -1); }
+    });
+    stage.addEventListener('pointercancel', () => { x0 = null; });
+    // a swipe must not also count as a tap on a side slide
+    stage.addEventListener('click', (e) => { if (swiped) { swiped = false; e.stopPropagation(); } }, true);
+
+    if (matchMedia('(hover: hover) and (pointer: fine)').matches) {
+      stage.addEventListener('pointerenter', () => { hovering = true; schedule(); });
+      stage.addEventListener('pointerleave', () => { hovering = false; schedule(); });
+    }
+    document.addEventListener('visibilitychange', schedule);
+    new IntersectionObserver(([e]) => {
+      visible = e.isIntersecting;
+      schedule();
+    }, { threshold: 0.35 }).observe(gal);
+
+    layout();
+  });
+
   /* ---------------- hover light ---------------- */
   if (matchMedia('(hover: hover) and (pointer: fine)').matches) {
     $$('.frame').forEach((f) => {
